@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
 
 @Injectable()
 export class ProductsService {
-  private readonly products: CreateProductDto[] = [];
+  private readonly products: any[] = [];
 
-  create(createProductDto: CreateProductDto) {
-    this.products.push(createProductDto);
-    return createProductDto;
+  create(product: any) {
+    this.products.push(product);
+    return product;
   }
 
   findAll() {
