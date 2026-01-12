@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
+import { Product } from './products/entities/product.entity';
 import { ProductsModule } from './products/products.module';
 
 @Module({
@@ -15,7 +16,7 @@ import { ProductsModule } from './products/products.module';
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'huevangxp',
       database: process.env.DB_NAME || 'training_nest',
-      entities: [User],
+      entities: [User, Product],
       synchronize: true,
     }),
     UsersModule,
