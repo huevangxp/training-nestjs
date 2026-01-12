@@ -28,19 +28,51 @@ export class ProductsService {
     return await this.productRepository.save(product);
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll() {
+    try {
+      const data = await this.productRepository.find();
+      if (!data) {
+        throw new Error('No data found');
+      }
+      return data || [];
+    } catch (error) {
+      return error;
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    try {
+      const data = await this.productRepository.findOneBy({ id });
+      if (!data) {
+        throw new Error('No data found');
+      }
+      return data;
+    } catch (error) {
+      return error;
+    }
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    try {
+      const data = await this.productRepository.findOneBy({ id });
+      if (!data) {
+        throw new Error('No data found');
+      }
+      return await this.productRepository.update(id, updateProductDto);
+    } catch (error) {
+      return error;
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    try {
+      const data = await this.productRepository.findOneBy({ id });
+      if (!data) {
+        throw new Error('No data found');
+      }
+      return await this.productRepository.remove(data);
+    } catch (error) {
+      return error;
+    }
   }
 }
