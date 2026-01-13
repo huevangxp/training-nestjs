@@ -23,12 +23,28 @@ export class CategoryService {
     return await this.categoryRepository.save(category);
   }
 
-  findAll() {
-    return `This action returns all category`;
+  async findAll() {
+    try {
+      const data = await this.categoryRepository.find();
+      if (!data) {
+        throw new Error('No data found');
+      }
+      return data || [];
+    } catch (error) {
+      return error;
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findOne(id: string) {
+    try {
+      const data = await this.categoryRepository.findOneBy({ id });
+      if (!data) {
+        throw new Error('No data found');
+      }
+      return data;
+    } catch (error) {
+      return error;
+    }
   }
 
   update(id: number, updateCategoryDto: UpdateCategoryDto) {
