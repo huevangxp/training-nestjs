@@ -47,11 +47,27 @@ export class CategoryService {
     }
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
+    try {
+      const data = await this.categoryRepository.findOneBy({ id });
+      if (!data) {
+        throw new Error('No data found');
+      }
+      return await this.categoryRepository.update(id, updateCategoryDto);
+    } catch (error) {
+      return error;
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: string) {
+    try {
+      const data = await this.categoryRepository.findOneBy({ id });
+      if (!data) {
+        throw new Error('No data found');
+      }
+      return await this.categoryRepository.remove(data);
+    } catch (error) {
+      return error;
+    }
   }
 }
