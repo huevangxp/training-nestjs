@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
@@ -16,15 +16,12 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     const { password, ...rest } = createUserDto;
-    // check if user already exists
-    const user = await this.userRepository.findOneBy({
-      email: createUserDto.email,
-    });
+    const user = await this.userRepository.findOneBy({ email: createUserDto.email });
     if (user) {
-      throw new Error('User already exists');
+      throw new ConflictException('User already exists');
     }
     const hashPassword = await bcrypt.hash(password, 10);
-    return this.userRepository.save({ ...rest, password: hashPassword });
+    return await this.userRepository.save({ ...rest, password: hashPassword });
   }
 
   async login(loginDto: LoginDto) {
@@ -33,63 +30,48 @@ export class UsersService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    // this user data remove password
     const { password: _, ...rest } = user;
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const token = jwt.sign({ id: user.id }, 'Huevangxp', {
-      expiresIn: '1h',
-    });
+    const token = jwt.sign({ id: user.id }, 'Huevangxp', { expiresIn: '1h' });
     return { user: rest, token };
   }
 
   async findAll() {
-    try {
-      return await this.userRepository.find();
-    } catch (error) {
-      return error;
-    }
+    return await this.userRepository.find();
   }
 
   async findOne(id: string) {
-    try {
-      return await this.userRepository.findOneBy({ id });
-    } catch (error) {
-      return error;
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    return user;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    try {
-      const user = await this.userRepository.findOneBy({ id });
-      if (!user) {
-        throw new Error('User not found');
-      }
-      const { password, ...rest } = updateUserDto;
-      if (password) {
-        const hashPassword = await bcrypt.hash(password, 10);
-        return await this.userRepository.update(id, {
-          ...rest,
-          password: hashPassword,
-        });
-      }
-      return await this.userRepository.update(id, rest);
-    } catch (error) {
-      return error;
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    const { password, ...rest } = updateUserDto;
+    if (password) {
+      const hashPassword = await bcrypt.hash(password, 10);
+      await this.userRepository.update(id, { ...rest, password: hashPassword });
+    } else {
+      await this.userRepository.update(id, rest);
+    }
+    return await this.findOne(id);
   }
 
   async remove(id: string) {
-    try {
-      const user = await this.userRepository.findOneBy({ id });
-      if (!user) {
-        throw new Error('User not found');
-      }
-      return await this.userRepository.delete(id);
-    } catch (error) {
-      return error;
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    await this.userRepository.delete(id);
+    return { deleted: true };
   }
 }
