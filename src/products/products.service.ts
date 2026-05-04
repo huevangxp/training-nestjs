@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,65 +14,40 @@ export class ProductsService {
 
   async create(createProductDto: CreateProductDto) {
     const { name, price, description } = createProductDto;
-    const productAlreadyExists = await this.productRepository.findOneBy({
-      name,
-    });
+    const productAlreadyExists = await this.productRepository.findOneBy({ name });
     if (productAlreadyExists) {
-      throw new Error('Product already exists');
+      throw new ConflictException('Product already exists');
     }
-    const product = this.productRepository.create({
-      name,
-      price,
-      description,
-    });
+    const product = this.productRepository.create({ name, price, description });
     return await this.productRepository.save(product);
   }
 
   async findAll() {
-    try {
-      const data = await this.productRepository.find();
-      if (!data) {
-        throw new Error('No data found');
-      }
-      return data || [];
-    } catch (error) {
-      return error;
-    }
+    return await this.productRepository.find();
   }
 
   async findOne(id: string) {
-    try {
-      const data = await this.productRepository.findOneBy({ id });
-      if (!data) {
-        throw new Error('No data found');
-      }
-      return data;
-    } catch (error) {
-      return error;
+    const data = await this.productRepository.findOneBy({ id });
+    if (!data) {
+      throw new NotFoundException('No data found');
     }
+    return data;
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    try {
-      const data = await this.productRepository.findOneBy({ id });
-      if (!data) {
-        throw new Error('No data found');
-      }
-      return await this.productRepository.update(id, updateProductDto);
-    } catch (error) {
-      return error;
+    const data = await this.productRepository.findOneBy({ id });
+    if (!data) {
+      throw new NotFoundException('No data found');
     }
+    await this.productRepository.update(id, updateProductDto);
+    return await this.findOne(id);
   }
 
   async remove(id: string) {
-    try {
-      const data = await this.productRepository.findOneBy({ id });
-      if (!data) {
-        throw new Error('No data found');
-      }
-      return await this.productRepository.remove(data);
-    } catch (error) {
-      return error;
+    const data = await this.productRepository.findOneBy({ id });
+    if (!data) {
+      throw new NotFoundException('No data found');
     }
+    return await this.productRepository.remove(data);
   }
 }
