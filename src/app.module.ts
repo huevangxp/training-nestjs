@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,6 +9,7 @@ import { User } from './users/entities/user.entity';
 import { Product } from './products/entities/product.entity';
 import { ProductsModule } from './products/products.module';
 import { CategoryModule } from './category/category.module';
+import { Category } from './category/entities/category.entity';
 
 @Module({
   imports: [
@@ -17,7 +20,7 @@ import { CategoryModule } from './category/category.module';
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'huevangxp',
       database: process.env.DB_NAME || 'training_nest',
-      entities: [User, Product],
+      entities: [User, Product, Category],
       synchronize: true,
     }),
     UsersModule,
