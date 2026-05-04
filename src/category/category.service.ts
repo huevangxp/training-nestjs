@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,63 +11,44 @@ export class CategoryService {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
   ) {}
+
   async create(createCategoryDto: CreateCategoryDto) {
     const { name } = createCategoryDto;
-    const categoryAlreadyExists = await this.categoryRepository.findOneBy({
-      name,
-    });
+    const categoryAlreadyExists = await this.categoryRepository.findOneBy({ name });
     if (categoryAlreadyExists) {
-      throw new Error('Category already exists');
+      throw new ConflictException('Category already exists');
     }
     const category = this.categoryRepository.create({ name });
     return await this.categoryRepository.save(category);
   }
 
   async findAll() {
-    try {
-      const data = await this.categoryRepository.find();
-      if (!data) {
-        throw new Error('No data found');
-      }
-      return data || [];
-    } catch (error) {
-      return error;
-    }
+    return await this.categoryRepository.find();
   }
 
   async findOne(id: string) {
-    try {
-      const data = await this.categoryRepository.findOneBy({ id });
-      if (!data) {
-        throw new Error('No data found');
-      }
-      return data;
-    } catch (error) {
-      return error;
+    const data = await this.categoryRepository.findOneBy({ id });
+    if (!data) {
+      throw new NotFoundException('No data found');
     }
+    return data;
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
-    try {
-      const data = await this.categoryRepository.findOneBy({ id });
-      if (!data) {
-        throw new Error('No data found');
-      }
-      return await this.categoryRepository.update(id, updateCategoryDto);
-    } catch (error) {
-      return error;
+    const data = await this.categoryRepository.findOneBy({ id });
+    if (!data) {
+      throw new NotFoundException('No data found');
     }
+    await this.categoryRepository.update(id, updateCategoryDto);
+    return await this.findOne(id);
   }
 
   async remove(id: string) {
-    try {
-      const data = await this.categoryRepository.findOneBy({ id });
-      if (!data) {
-        throw new Error('No data found');
-      }
-      return await this.categoryRepository.remove(data);
-    } catch (error) {
-      return error;
+    const data = await this.categoryRepository.findOneBy({ id });
+    if (!data) {
+      throw new NotFoundException('No data found');
     }
+    return await this.categoryRepository.remove(data);
   }
 }
+
